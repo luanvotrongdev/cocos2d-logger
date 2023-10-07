@@ -79,15 +79,15 @@
     },
     "f46876e4-e81b-4931-b493-6d367be385e7": {
       "position": {
-        "x": 50,
-        "y": 50,
-        "z": 50
+        "x": 0,
+        "y": 0,
+        "z": 0
       },
       "rotation": {
-        "x": -0.27984814233312133,
-        "y": 0.3647051996310009,
-        "z": 0.11591689595929512,
-        "w": 0.8804762392171493
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1
       },
       "viewCenter": {
         "x": 0,
@@ -114,13 +114,13 @@
   },
   "game-view": {
     "fullScreen": true,
-    "scaleValue": 128,
-    "sliderValue": 54,
+    "scaleValue": 93,
+    "sliderValue": 46,
     "devicesInfo": {
-      "name": "Pixel 2 XL",
-      "type": "device",
-      "width": 412,
-      "height": 823
+      "name": "i18n:scene.game_view.design_resolution",
+      "type": "design",
+      "width": 641,
+      "height": 960
     },
     "rotate": false
   }

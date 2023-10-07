@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventTouch, Input, input, math, Vec2, Node, Camera, Canvas, Widget, gfx, renderer, ScrollView, Sprite, Mask, Layout, Graphics, Layers, SpriteFrame, RichText, UITransform, Vec3, Label, Color, view, Size } from 'cc';
+import { _decorator, Component, director, EventTouch, Input, input, math, Vec2, Node, Camera, Canvas, Widget, renderer, ScrollView, Sprite, Mask, Layout, Graphics, Layers, SpriteFrame, UITransform, Label, Color, view, Size, sys } from 'cc';
 
 const { ccclass, property } = _decorator;
 
@@ -23,6 +23,7 @@ export class GameSDK extends Component {
 
     private totalAngle: number = 0
     private prevRay: Vec2 = null
+    private logger: DebugLogger = null
     private logListener: LogListener = null
 
     start() {
@@ -34,6 +35,10 @@ export class GameSDK extends Component {
         input.on(Input.EventType.TOUCH_MOVE, this.onTouchMove.bind(this))
         input.on(Input.EventType.TOUCH_END, this.onTouchMove.bind(this))
         input.on(Input.EventType.TOUCH_CANCEL, this.onTouchMove.bind(this))
+
+        this.logger = this.addComponent(DebugLogger)
+        this.logger.init(this.spriteframe)
+        this.logger.disableLog()
     }
 
     getAngleFromRay(ray: Vec2, ray2: Vec2): number {
@@ -43,14 +48,13 @@ export class GameSDK extends Component {
     onTouchStart(eventData: EventTouch) {
         this.prevRay = null
         this.totalAngle = 0
+        console.error("----------------")
     }
 
     onTouchMove(eventData: EventTouch) {
         let ray = eventData.touch.getDelta()
+        console.log(ray)
         if (ray.length() == 0)
-            return
-
-        if (this.node.getChildByName("DebuggerCanvas"))
             return
 
         if (this.prevRay == null)
@@ -60,12 +64,7 @@ export class GameSDK extends Component {
         this.totalAngle += currentAngle
         this.prevRay = ray
         if (this.totalAngle > 360) {
-            this.node.getComponent(Widget).updateAlignment()
-            let logger: DebugLogger = this.addComponent(DebugLogger)
-            logger.init(this.spriteframe)
-            setTimeout(() => {
-                logger.insertLog(this.logListener.logs)
-            }, 100)
+            this.logger.enableLog()
         }
     }
 }
@@ -99,22 +98,45 @@ class LogListener extends Component {
     }
 
     onLog(...data: any[]) {
-        this.logs.push({ logType: LOG_TYPE.LOG, log: data[0] })
+        if(DebugLogger.instance == null)
+            return
+        DebugLogger.instance.insertLog({ logType: LOG_TYPE.LOG, log: data[0] })
         this.orgLog(data)
     }
 
     onWarning(...data: any[]) {
-        this.logs.push({ logType: LOG_TYPE.WARNING, log: data[0] })
+        if(DebugLogger.instance == null)
+            return
+        DebugLogger.instance.insertLog({ logType: LOG_TYPE.WARNING, log: data[0] })
         this.orgWarning(data)
     }
 
     onError(...data: any[]) {
-        this.logs.push({ logType: LOG_TYPE.ERROR, log: data[0] })
+        if(DebugLogger.instance == null)
+            return
+        DebugLogger.instance.insertLog({ logType: LOG_TYPE.ERROR, log: data[0] })
         this.orgError(data)
     }
+
+    // onLog(...data: any[]) {
+    //     this.logs.push({ logType: LOG_TYPE.LOG, log: data[0] })
+    //     this.orgLog(data)
+    // }
+
+    // onWarning(...data: any[]) {
+    //     this.logs.push({ logType: LOG_TYPE.WARNING, log: data[0] })
+    //     this.orgWarning(data)
+    // }
+
+    // onError(...data: any[]) {
+    //     this.logs.push({ logType: LOG_TYPE.ERROR, log: data[0] })
+    //     this.orgError(data)
+    // }
 }
 
 class DebugLogger extends Component {
+    public static instance : DebugLogger = null
+
     private readonly COLOR_BG: Color = new math.Color(0, 0, 0, 200)
     private readonly COLOR_LOG_TEXT: Color = Color.WHITE
     private readonly COLOR_WARNING_TEXT: Color = Color.YELLOW
@@ -124,28 +146,47 @@ class DebugLogger extends Component {
     private viewmaskTransform: UITransform = null
     private contentLayout: Layout = null
     private debuggerScrollview: ScrollView = null
+    private fullscreenNodes: Node[] = []
 
     init(spriteframe: SpriteFrame) {
+        DebugLogger.instance = this
         this.initCanvas()
         this.initScrollView(spriteframe)
     }
 
-    insertLog(logs: LogInfo[]) {
-        logs.forEach((v) => {
-            switch (v.logType) {
-                case LOG_TYPE.LOG:
-                    this.onLog(this.COLOR_LOG_TEXT, v.log)
-                    break
-
-                case LOG_TYPE.WARNING:
-                    this.onLog(this.COLOR_WARNING_TEXT, v.log)
-                    break
-
-                case LOG_TYPE.ERROR:
-                    this.onLog(this.COLOR_ERROR_TEXT, v.log)
-                    break
-            }
+    enableLog() {
+        this.fullscreenNodes.forEach(node => {
+            let size: Size = sys.getSafeAreaRect()
+            let tf: UITransform = node.getComponent(UITransform)
+            tf.setContentSize(size)
         })
+    }
+
+    disableLog() {
+        this.fullscreenNodes.forEach(node => {
+            let tf: UITransform = node.getComponent(UITransform)
+            tf.setContentSize(Size.ZERO)
+        })
+    }
+
+    insertLogs(logs: LogInfo[]) {
+        logs.forEach((v) => this.insertLog(v))
+    }
+
+    insertLog(log : LogInfo){
+        switch (log.logType) {
+            case LOG_TYPE.LOG:
+                this.onLog(this.COLOR_LOG_TEXT, log.log)
+                break
+
+            case LOG_TYPE.WARNING:
+                this.onLog(this.COLOR_WARNING_TEXT, log.log)
+                break
+
+            case LOG_TYPE.ERROR:
+                this.onLog(this.COLOR_ERROR_TEXT, log.log)
+                break
+        }
     }
 
     onLog(color: Color, ...data: any[]) {
@@ -159,16 +200,21 @@ class DebugLogger extends Component {
         text.enableWrapText = true
         text.horizontalAlign = Label.HorizontalAlign.LEFT
         text.fontSize = 25
+        this.addFillWidthParentWidget(node)
+
         this.debuggerContentNode.addChild(node)
-        this.contentLayout.updateLayout()
         this.debuggerScrollview.scrollToBottom()
     }
 
     addFillParentWidget(node: Node) {
-        let size : Size = view.getCanvasSize()
-        let transform : UITransform = node.getComponent(UITransform)
-        console.log(transform)
-        transform.setContentSize(size)
+        this.fullscreenNodes.push(node)
+    }
+
+    addFillWidthParentWidget(node: Node){
+        let widget : Widget = node.addComponent(Widget)
+        widget.isAlignLeft = widget.isAlignRight = true
+        widget.left = widget.right = 0
+        widget.alignMode = Widget.AlignMode.ALWAYS
     }
 
     initCanvas() {
@@ -177,7 +223,7 @@ class DebugLogger extends Component {
         this.addFillParentWidget(canvasNode)
         this.canvas = canvasNode.addComponent(Canvas)
         this.node.addChild(canvasNode)
-        
+
         let cameraNode = new Node("UICamera")
         cameraNode.layer = 1 << Layers.nameToLayer("UI_2D")
         let uiCamera: Camera = cameraNode.addComponent(Camera)
@@ -219,6 +265,7 @@ class DebugLogger extends Component {
         scrollviewNode.addChild(viewMaskNode)
 
         this.debuggerContentNode = new Node("DebuggerContent")
+        this.addFillParentWidget(this.debuggerContentNode)
         this.debuggerContentNode.layer = 1 << Layers.nameToLayer("UI_2D")
         let layout: Layout = this.debuggerContentNode.addComponent(Layout)
         layout.type = Layout.Type.VERTICAL
