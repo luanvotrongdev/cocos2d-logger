@@ -1,0 +1,52 @@
+{
+  "__version__": "3.0.7",
+  "builder": {
+    "options": {
+      "web-desktop": {
+        "configID": "8092de",
+        "services": []
+      },
+      "ios": {
+        "configID": "8092de",
+        "services": []
+      }
+    },
+    "taskOptionsMap": {
+      "1696410393757": {
+        "configID": "8092de",
+        "services": []
+      },
+      "1696410701612": {
+        "configID": "8092de",
+        "services": [],
+        "__version__": "3.0.7"
+      },
+      "1696411084006": {
+        "configID": "8092de",
+        "services": [],
+        "__version__": "3.0.7"
+      },
+      "1696411219891": {
+        "configID": "8092de",
+        "services": [],
+        "__version__": "3.0.7"
+      },
+      "1696413281307": {
+        "configID": "8092de",
+        "services": [],
+        "__version__": "3.0.7"
+      },
+      "1696414120409": {
+        "configID": "8092de",
+        "services": [],
+        "__version__": "3.0.7"
+      }
+    },
+    "__version__": "1.3.4"
+  },
+  "builder-options": {
+    "configID": "8092de",
+    "services": [],
+    "__version__": "3.0.7"
+  }
+}

@@ -1,0 +1,152 @@
+{
+  "__version__": "1.0.0",
+  "builder": {
+    "common": {
+      "buildPath": "project://build",
+      "outputName": "ios",
+      "mainBundleCompressionType": "merge_dep",
+      "platform": "ios",
+      "debug": true
+    },
+    "options": {
+      "ios": {
+        "packageName": "com.luancoin98.test",
+        "renderBackEnd": {
+          "metal": true
+        },
+        "skipUpdateXcodeProject": true,
+        "orientation": {
+          "portrait": true,
+          "upsideDown": false,
+          "landscapeRight": false,
+          "landscapeLeft": false
+        },
+        "osTarget": {
+          "iphoneos": true,
+          "simulator": false
+        },
+        "targetVersion": "14.0",
+        "__version__": "1.0.0",
+        "developerTeam": "YNY62ZKW2V_DBE51BCB5D7129BCF0131427AE066AA69B9F146C"
+      }
+    },
+    "taskOptionsMap": {
+      "1696410393757": {
+        "packageName": "com.lulu.test",
+        "renderBackEnd": {
+          "metal": true
+        },
+        "skipUpdateXcodeProject": false,
+        "orientation": {
+          "portrait": false,
+          "upsideDown": false,
+          "landscapeRight": true,
+          "landscapeLeft": true
+        },
+        "osTarget": {
+          "iphoneos": false,
+          "simulator": true
+        },
+        "targetVersion": "12.0",
+        "__version__": "1.0.0"
+      },
+      "1696410701612": {
+        "packageName": "com.lulu.test",
+        "renderBackEnd": {
+          "metal": true
+        },
+        "skipUpdateXcodeProject": false,
+        "orientation": {
+          "portrait": false,
+          "upsideDown": false,
+          "landscapeRight": true,
+          "landscapeLeft": true
+        },
+        "osTarget": {
+          "iphoneos": true,
+          "simulator": false
+        },
+        "targetVersion": "12.0",
+        "__version__": "1.0.0"
+      },
+      "1696411084006": {
+        "packageName": "com.lulu.test",
+        "renderBackEnd": {
+          "metal": true
+        },
+        "skipUpdateXcodeProject": true,
+        "orientation": {
+          "portrait": true,
+          "upsideDown": false,
+          "landscapeRight": false,
+          "landscapeLeft": false
+        },
+        "osTarget": {
+          "iphoneos": true,
+          "simulator": true
+        },
+        "targetVersion": "11.0",
+        "__version__": "1.0.0"
+      },
+      "1696411219891": {
+        "packageName": "com.lulu.test",
+        "renderBackEnd": {
+          "metal": true
+        },
+        "skipUpdateXcodeProject": true,
+        "orientation": {
+          "portrait": true,
+          "upsideDown": false,
+          "landscapeRight": false,
+          "landscapeLeft": false
+        },
+        "osTarget": {
+          "iphoneos": true,
+          "simulator": false
+        },
+        "targetVersion": "11.0",
+        "__version__": "1.0.0"
+      },
+      "1696413281307": {
+        "packageName": "com.lulu.test",
+        "renderBackEnd": {
+          "metal": true
+        },
+        "skipUpdateXcodeProject": true,
+        "orientation": {
+          "portrait": true,
+          "upsideDown": false,
+          "landscapeRight": false,
+          "landscapeLeft": false
+        },
+        "osTarget": {
+          "iphoneos": true,
+          "simulator": false
+        },
+        "targetVersion": "14.0",
+        "__version__": "1.0.0"
+      },
+      "1696414120409": {
+        "packageName": "com.luancoin98.test",
+        "renderBackEnd": {
+          "metal": true
+        },
+        "skipUpdateXcodeProject": true,
+        "orientation": {
+          "portrait": true,
+          "upsideDown": false,
+          "landscapeRight": false,
+          "landscapeLeft": false
+        },
+        "osTarget": {
+          "iphoneos": true,
+          "simulator": false
+        },
+        "targetVersion": "14.0",
+        "__version__": "1.0.0",
+        "developerTeam": "YNY62ZKW2V_DBE51BCB5D7129BCF0131427AE066AA69B9F146C"
+      }
+    },
+    "__version__": "1.3.4"
+  }
+}
