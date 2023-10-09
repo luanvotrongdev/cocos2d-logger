@@ -13,6 +13,7 @@ enum LOG_TYPE {
 interface LogInfo {
     logType: LOG_TYPE
     log: string
+    stack: string
 }
 
 @ccclass('GameSDK')
@@ -100,21 +101,21 @@ class LogListener extends Component {
     onLog(...data: any[]) {
         if(DebugLogger.instance == null)
             return
-        DebugLogger.instance.insertLog({ logType: LOG_TYPE.LOG, log: data[0] })
+        DebugLogger.instance.insertLog({ logType: LOG_TYPE.LOG, log: data[0], stack: Error().stack })
         this.orgLog(data)
     }
 
     onWarning(...data: any[]) {
         if(DebugLogger.instance == null)
             return
-        DebugLogger.instance.insertLog({ logType: LOG_TYPE.WARNING, log: data[0] })
+        DebugLogger.instance.insertLog({ logType: LOG_TYPE.WARNING, log: data[0], stack: Error().stack })
         this.orgWarning(data)
     }
 
     onError(...data: any[]) {
         if(DebugLogger.instance == null)
             return
-        DebugLogger.instance.insertLog({ logType: LOG_TYPE.ERROR, log: data[0] })
+        DebugLogger.instance.insertLog({ logType: LOG_TYPE.ERROR, log: data[0], stack: Error().stack })
         this.orgError(data)
     }
 
