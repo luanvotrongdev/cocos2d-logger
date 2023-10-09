@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventTouch, Input, input, math, Vec2, Vec3, Node, Camera, Canvas, Widget, renderer, ScrollView, Sprite, Mask, Layout, Graphics, Layers, SpriteFrame, UITransform, Label, Color, view, Size, sys, Rect } from 'cc';
+import { _decorator, Component, director, EventTouch, Input, input, math, Vec2, Vec3, Node, Camera, Canvas, Widget, renderer, ScrollView, Sprite, Mask, Layout, Graphics, Layers, SpriteFrame, UITransform, Label, Color, view, Size, sys, Rect, Button, color } from 'cc';
 
 const { ccclass, property } = _decorator;
 
@@ -10,9 +10,21 @@ enum LOG_TYPE {
     ERROR
 }
 
+function LogTypeToColor(logType : LOG_TYPE) : Color {
+    switch(logType)
+    {
+        case LOG_TYPE.LOG:
+            return Color.WHITE
+        case LOG_TYPE.WARNING:
+            return Color.YELLOW
+        case LOG_TYPE.ERROR:
+            return Color.RED
+    }
+}
+
 interface LogInfo {
     logType: LOG_TYPE
-    log: string
+    log: string[]
     stack: string
 }
 
@@ -101,38 +113,23 @@ class LogListener extends Component {
     onLog(...data: any[]) {
         if (DebugLogger.instance == null)
             return
-        DebugLogger.instance.insertLog({ logType: LOG_TYPE.LOG, log: data[0], stack: Error().stack })
+        DebugLogger.instance.insertLog({ logType: LOG_TYPE.LOG, log: data, stack: Error().stack })
         this.orgLog(data)
     }
 
     onWarning(...data: any[]) {
         if (DebugLogger.instance == null)
             return
-        DebugLogger.instance.insertLog({ logType: LOG_TYPE.WARNING, log: data[0], stack: Error().stack })
+        DebugLogger.instance.insertLog({ logType: LOG_TYPE.WARNING, log: data, stack: Error().stack })
         this.orgWarning(data)
     }
 
     onError(...data: any[]) {
         if (DebugLogger.instance == null)
             return
-        DebugLogger.instance.insertLog({ logType: LOG_TYPE.ERROR, log: data[0], stack: Error().stack })
+        DebugLogger.instance.insertLog({ logType: LOG_TYPE.ERROR, log: data, stack: Error().stack })
         this.orgError(data)
     }
-
-    // onLog(...data: any[]) {
-    //     this.logs.push({ logType: LOG_TYPE.LOG, log: data[0] })
-    //     this.orgLog(data)
-    // }
-
-    // onWarning(...data: any[]) {
-    //     this.logs.push({ logType: LOG_TYPE.WARNING, log: data[0] })
-    //     this.orgWarning(data)
-    // }
-
-    // onError(...data: any[]) {
-    //     this.logs.push({ logType: LOG_TYPE.ERROR, log: data[0] })
-    //     this.orgError(data)
-    // }
 }
 
 interface AlignInfo {
@@ -144,9 +141,6 @@ class DebugLogger extends Component {
     public static instance: DebugLogger = null
 
     private readonly COLOR_BG: Color = new math.Color(0, 0, 0, 200)
-    private readonly COLOR_LOG_TEXT: Color = Color.WHITE
-    private readonly COLOR_WARNING_TEXT: Color = Color.YELLOW
-    private readonly COLOR_ERROR_TEXT: Color = Color.RED
     private canvas: Canvas = null
     private debuggerContentNode: Node = null
     private viewmaskTransform: UITransform = null
@@ -188,28 +182,31 @@ class DebugLogger extends Component {
     }
 
     insertLog(log: LogInfo) {
-        switch (log.logType) {
-            case LOG_TYPE.LOG:
-                this.onLog(this.COLOR_LOG_TEXT, log.log)
-                break
-
-            case LOG_TYPE.WARNING:
-                this.onLog(this.COLOR_WARNING_TEXT, log.log)
-                break
-
-            case LOG_TYPE.ERROR:
-                this.onLog(this.COLOR_ERROR_TEXT, log.log)
-                break
-        }
+        let labelNode : Node = this.onLog(log)
+        let button : Button = labelNode.addComponent(Button)
+        button.node.on(Button.EventType.CLICK, ()=>{
+            this.onLogClicked(log)
+        }, this)
     }
 
-    onLog(color: Color, ...data: any[]) {
+    onLogClicked (logInfo : LogInfo) {
+        let text: Label = this.stackLabel
+        text.string = logInfo.stack
+        text.color = LogTypeToColor(logInfo.logType)
+        text.overflow = Label.Overflow.RESIZE_HEIGHT
+        text.enableWrapText = true
+        text.horizontalAlign = Label.HorizontalAlign.LEFT
+        text.fontSize = 25
+        this.addFillWidthParentWidget(text.node)
+    }
+
+    onLog(logInfo : LogInfo) : Node {
         let node = new Node()
         node.layer = 1 << Layers.nameToLayer("UI_2D")
 
         let text: Label = node.addComponent(Label)
-        text.string = data.join()
-        text.color = color
+        text.string = logInfo.log.join()
+        text.color = LogTypeToColor(logInfo.logType)
         text.overflow = Label.Overflow.RESIZE_HEIGHT
         text.enableWrapText = true
         text.horizontalAlign = Label.HorizontalAlign.LEFT
@@ -218,6 +215,7 @@ class DebugLogger extends Component {
 
         this.debuggerContentNode.addChild(node)
         this.debuggerScrollview.scrollToBottom()
+        return node
     }
 
     addFillParentWidget(node: Node, rect: Rect) {
