@@ -1,4 +1,4 @@
-import { _decorator, Component, director, EventTouch, Input, input, math, Vec2, Node, Camera, Canvas, Widget, renderer, ScrollView, Sprite, Mask, Layout, Graphics, Layers, SpriteFrame, UITransform, Label, Color, view, Size, sys } from 'cc';
+import { _decorator, Component, director, EventTouch, Input, input, math, Vec2, Vec3, Node, Camera, Canvas, Widget, renderer, ScrollView, Sprite, Mask, Layout, Graphics, Layers, SpriteFrame, UITransform, Label, Color, view, Size, sys, Rect } from 'cc';
 
 const { ccclass, property } = _decorator;
 
@@ -99,21 +99,21 @@ class LogListener extends Component {
     }
 
     onLog(...data: any[]) {
-        if(DebugLogger.instance == null)
+        if (DebugLogger.instance == null)
             return
         DebugLogger.instance.insertLog({ logType: LOG_TYPE.LOG, log: data[0], stack: Error().stack })
         this.orgLog(data)
     }
 
     onWarning(...data: any[]) {
-        if(DebugLogger.instance == null)
+        if (DebugLogger.instance == null)
             return
         DebugLogger.instance.insertLog({ logType: LOG_TYPE.WARNING, log: data[0], stack: Error().stack })
         this.orgWarning(data)
     }
 
     onError(...data: any[]) {
-        if(DebugLogger.instance == null)
+        if (DebugLogger.instance == null)
             return
         DebugLogger.instance.insertLog({ logType: LOG_TYPE.ERROR, log: data[0], stack: Error().stack })
         this.orgError(data)
@@ -135,8 +135,13 @@ class LogListener extends Component {
     // }
 }
 
+interface AlignInfo {
+    node: Node
+    rect: Rect
+}
+
 class DebugLogger extends Component {
-    public static instance : DebugLogger = null
+    public static instance: DebugLogger = null
 
     private readonly COLOR_BG: Color = new math.Color(0, 0, 0, 200)
     private readonly COLOR_LOG_TEXT: Color = Color.WHITE
@@ -147,25 +152,33 @@ class DebugLogger extends Component {
     private viewmaskTransform: UITransform = null
     private contentLayout: Layout = null
     private debuggerScrollview: ScrollView = null
-    private fullscreenNodes: Node[] = []
+    private stackLabel: Label = null
+    private alignInfos: AlignInfo[] = []
 
     init(spriteframe: SpriteFrame) {
         DebugLogger.instance = this
-        this.initCanvas()
-        this.initScrollView(spriteframe)
+        let fullRect: Rect = sys.getSafeAreaRect()
+
+        this.initCanvas(fullRect)
+        // this.initButtons(spriteframe, )
+        let stackRect: Rect = new Rect(0, fullRect.height * 0.2, fullRect.width, fullRect.height * 0.4)
+        this.initStackView(spriteframe, stackRect)
+        let logRect: Rect = new Rect(0, -fullRect.height * 0.25, fullRect.width, fullRect.height * 0.5)
+        this.initLogView(spriteframe, logRect)
     }
 
     enableLog() {
-        this.fullscreenNodes.forEach(node => {
-            let size: Size = sys.getSafeAreaRect()
-            let tf: UITransform = node.getComponent(UITransform)
+        this.alignInfos.forEach(node => {
+            let size: Size = node.rect.size
+            let tf: UITransform = node.node.getComponent(UITransform)
+            node.node.setWorldPosition(new Vec3(node.rect.xMin, node.rect.yMin, 0))
             tf.setContentSize(size)
         })
     }
 
     disableLog() {
-        this.fullscreenNodes.forEach(node => {
-            let tf: UITransform = node.getComponent(UITransform)
+        this.alignInfos.forEach(node => {
+            let tf: UITransform = node.node.getComponent(UITransform)
             tf.setContentSize(Size.ZERO)
         })
     }
@@ -174,7 +187,7 @@ class DebugLogger extends Component {
         logs.forEach((v) => this.insertLog(v))
     }
 
-    insertLog(log : LogInfo){
+    insertLog(log: LogInfo) {
         switch (log.logType) {
             case LOG_TYPE.LOG:
                 this.onLog(this.COLOR_LOG_TEXT, log.log)
@@ -195,7 +208,7 @@ class DebugLogger extends Component {
         node.layer = 1 << Layers.nameToLayer("UI_2D")
 
         let text: Label = node.addComponent(Label)
-        text.string = data[0]
+        text.string = data.join()
         text.color = color
         text.overflow = Label.Overflow.RESIZE_HEIGHT
         text.enableWrapText = true
@@ -207,21 +220,21 @@ class DebugLogger extends Component {
         this.debuggerScrollview.scrollToBottom()
     }
 
-    addFillParentWidget(node: Node) {
-        this.fullscreenNodes.push(node)
+    addFillParentWidget(node: Node, rect: Rect) {
+        this.alignInfos.push({ node: node, rect: rect })
     }
 
-    addFillWidthParentWidget(node: Node){
-        let widget : Widget = node.addComponent(Widget)
+    addFillWidthParentWidget(node: Node) {
+        let widget: Widget = node.addComponent(Widget)
         widget.isAlignLeft = widget.isAlignRight = true
         widget.left = widget.right = 0
         widget.alignMode = Widget.AlignMode.ALWAYS
     }
 
-    initCanvas() {
+    initCanvas(rect: Rect) {
         let canvasNode = new Node("DebuggerCanvas")
         canvasNode.layer = 1 << Layers.nameToLayer("UI_2D")
-        this.addFillParentWidget(canvasNode)
+        this.addFillParentWidget(canvasNode, rect)
         this.canvas = canvasNode.addComponent(Canvas)
         this.node.addChild(canvasNode)
 
@@ -236,20 +249,80 @@ class DebugLogger extends Component {
         this.canvas.cameraComponent = uiCamera
     }
 
-    initScrollView(spriteframe: SpriteFrame) {
+    initButtons(spriteframe: SpriteFrame, rect: Rect) {
+
+    }
+
+    initStackView(spriteframe: SpriteFrame, rect: Rect) {
         let bgNode: Node = new Node("BG")
         bgNode.layer = 1 << Layers.nameToLayer("UI_2D")
         let sprite: Sprite = bgNode.addComponent(Sprite)
         sprite.spriteFrame = spriteframe
         sprite.color = this.COLOR_BG
         sprite.type = Sprite.Type.SLICED
-        this.addFillParentWidget(bgNode)
+        this.addFillParentWidget(bgNode, rect)
+        this.canvas.node.addChild(bgNode)
+
+        let scrollviewNode = new Node("StackScrollview")
+        scrollviewNode.layer = 1 << Layers.nameToLayer("UI_2D")
+
+        this.addFillParentWidget(scrollviewNode, rect)
+        let stackScrollview = scrollviewNode.addComponent(ScrollView)
+        stackScrollview.horizontal = false
+        stackScrollview.vertical = true
+        stackScrollview.inertia = false
+        stackScrollview.elastic = false
+        this.canvas.node.addChild(scrollviewNode)
+
+        let viewMaskNode = new Node("ViewMask")
+        viewMaskNode.layer = 1 << Layers.nameToLayer("UI_2D")
+        let graphic: Graphics = viewMaskNode.addComponent(Graphics)
+        let viewMask: Mask = viewMaskNode.addComponent(Mask)
+        viewMask.type = Mask.Type.GRAPHICS_RECT
+        this.addFillParentWidget(viewMaskNode, rect)
+        scrollviewNode.addChild(viewMaskNode)
+
+        let stackContentNode = new Node("StackContent")
+        this.addFillParentWidget(stackContentNode, rect)
+        stackContentNode.layer = 1 << Layers.nameToLayer("UI_2D")
+        let layout: Layout = stackContentNode.addComponent(Layout)
+        layout.type = Layout.Type.VERTICAL
+        layout.alignVertical = true
+        layout.alignHorizontal = false;
+        layout.resizeMode = Layout.ResizeMode.CONTAINER
+        layout.paddingBottom = layout.paddingTop = layout.paddingLeft = layout.paddingRight = 0
+        layout.spacingY = 10
+        layout.verticalDirection = Layout.VerticalDirection.TOP_TO_BOTTOM
+        layout.affectedByScale = false
+
+        this.viewmaskTransform = viewMaskNode.getComponent(UITransform)
+        viewMaskNode.addChild(stackContentNode)
+
+        let stackLabelNode = new Node("Stack")
+        stackLabelNode.layer = 1 << Layers.nameToLayer("UI_2D")
+
+        this.stackLabel = stackLabelNode.addComponent(Label)
+        this.stackLabel.string = ""
+        this.addFillWidthParentWidget(stackLabelNode)
+        stackContentNode.addChild(stackLabelNode)
+
+        stackScrollview.content = stackContentNode
+    }
+
+    initLogView(spriteframe: SpriteFrame, rect: Rect) {
+        let bgNode: Node = new Node("BG")
+        bgNode.layer = 1 << Layers.nameToLayer("UI_2D")
+        let sprite: Sprite = bgNode.addComponent(Sprite)
+        sprite.spriteFrame = spriteframe
+        sprite.color = this.COLOR_BG
+        sprite.type = Sprite.Type.SLICED
+        this.addFillParentWidget(bgNode, rect)
         this.canvas.node.addChild(bgNode)
 
         let scrollviewNode = new Node("Scrollview")
         scrollviewNode.layer = 1 << Layers.nameToLayer("UI_2D")
 
-        this.addFillParentWidget(scrollviewNode)
+        this.addFillParentWidget(scrollviewNode, rect)
         this.debuggerScrollview = scrollviewNode.addComponent(ScrollView)
         this.debuggerScrollview.horizontal = false
         this.debuggerScrollview.vertical = true
@@ -262,11 +335,11 @@ class DebugLogger extends Component {
         let graphic: Graphics = viewMaskNode.addComponent(Graphics)
         let viewMask: Mask = viewMaskNode.addComponent(Mask)
         viewMask.type = Mask.Type.GRAPHICS_RECT
-        this.addFillParentWidget(viewMaskNode)
+        this.addFillParentWidget(viewMaskNode, rect)
         scrollviewNode.addChild(viewMaskNode)
 
         this.debuggerContentNode = new Node("DebuggerContent")
-        this.addFillParentWidget(this.debuggerContentNode)
+        this.addFillParentWidget(this.debuggerContentNode, rect)
         this.debuggerContentNode.layer = 1 << Layers.nameToLayer("UI_2D")
         let layout: Layout = this.debuggerContentNode.addComponent(Layout)
         layout.type = Layout.Type.VERTICAL
@@ -283,11 +356,6 @@ class DebugLogger extends Component {
         viewMaskNode.addChild(this.debuggerContentNode)
 
         this.debuggerScrollview.content = this.debuggerContentNode
-    }
-
-    getViewportResolution(): Size {
-        console.log(view.getResolutionPolicy())
-        return Size.ONE
     }
 }
 
