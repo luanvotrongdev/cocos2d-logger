@@ -154,11 +154,17 @@ class DebugLogger extends Component {
         let fullRect: Rect = sys.getSafeAreaRect()
 
         this.initCanvas(fullRect)
-        let buttonsRect: Rect = new Rect(0, fullRect.height * 0.45, fullRect.width, fullRect.height * 0.1)
+        let y = fullRect.center.y
+        let height = fullRect.height * 0.1
+        let buttonsRect: Rect = new Rect(0, y, fullRect.width, height)
         this.initButtons(spriteframe, buttonsRect)
-        let stackRect: Rect = new Rect(0, fullRect.height * 0.2, fullRect.width, fullRect.height * 0.4)
+        y -= height
+        height = fullRect.height * 0.4
+        let stackRect: Rect = new Rect(0, y, fullRect.width, height)
         this.initStackView(spriteframe, stackRect)
-        let logRect: Rect = new Rect(0, -fullRect.height * 0.25, fullRect.width, fullRect.height * 0.5)
+        y -= height
+        height = fullRect.height * 0.5
+        let logRect: Rect = new Rect(0, y, fullRect.width, height)
         this.initLogView(spriteframe, logRect)
     }
 
@@ -166,6 +172,7 @@ class DebugLogger extends Component {
         this.alignInfos.forEach(node => {
             let size: Size = node.rect.size
             let tf: UITransform = node.node.getComponent(UITransform)
+            tf.anchorY = 1
             node.node.setWorldPosition(new Vec3(node.rect.xMin, node.rect.yMin, 0))
             tf.setContentSize(size)
         })
