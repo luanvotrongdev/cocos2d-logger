@@ -154,7 +154,8 @@ class DebugLogger extends Component {
         let fullRect: Rect = sys.getSafeAreaRect()
 
         this.initCanvas(fullRect)
-        // this.initButtons(spriteframe, )
+        let buttonsRect: Rect = new Rect(0, fullRect.height * 0.45, fullRect.width, fullRect.height * 0.1)
+        this.initButtons(spriteframe, buttonsRect)
         let stackRect: Rect = new Rect(0, fullRect.height * 0.2, fullRect.width, fullRect.height * 0.4)
         this.initStackView(spriteframe, stackRect)
         let logRect: Rect = new Rect(0, -fullRect.height * 0.25, fullRect.width, fullRect.height * 0.5)
@@ -229,6 +230,13 @@ class DebugLogger extends Component {
         widget.alignMode = Widget.AlignMode.ALWAYS
     }
 
+    addFillHeightParentWidget(node: Node) {
+        let widget: Widget = node.addComponent(Widget)
+        widget.isAlignTop = widget.isAlignBottom = true
+        widget.top = widget.bottom = 0
+        widget.alignMode = Widget.AlignMode.ALWAYS
+    }
+
     initCanvas(rect: Rect) {
         let canvasNode = new Node("DebuggerCanvas")
         canvasNode.layer = 1 << Layers.nameToLayer("UI_2D")
@@ -248,7 +256,51 @@ class DebugLogger extends Component {
     }
 
     initButtons(spriteframe: SpriteFrame, rect: Rect) {
+        let bgNode: Node = new Node("BG")
+        bgNode.layer = 1 << Layers.nameToLayer("UI_2D")
+        let sprite: Sprite = bgNode.addComponent(Sprite)
+        sprite.spriteFrame = spriteframe
+        sprite.color = this.COLOR_BG
+        sprite.type = Sprite.Type.SLICED
+        this.addFillParentWidget(bgNode, rect)
+        this.canvas.node.addChild(bgNode)
 
+        let layout : Layout = bgNode.addComponent(Layout)
+        layout.type = Layout.Type.HORIZONTAL
+        layout.alignVertical = true
+        layout.alignHorizontal = true;
+        layout.resizeMode = Layout.ResizeMode.CHILDREN
+        layout.paddingBottom = layout.paddingTop = layout.paddingLeft = layout.paddingRight = 0
+        layout.spacingY = 10
+        layout.horizontalDirection = Layout.HorizontalDirection.LEFT_TO_RIGHT
+        layout.affectedByScale = false
+
+        let clearNode : Node = new Node("ClearBtn")
+        clearNode.layer = 1 << Layers.nameToLayer("UI_2D")
+        let clearSprite: Sprite = clearNode.addComponent(Sprite)
+        clearSprite.spriteFrame = spriteframe
+        clearSprite.color = Color.YELLOW
+        clearSprite.type = Sprite.Type.SLICED
+        this.addFillHeightParentWidget(clearNode)
+        let clearBtn : Button = clearNode.addComponent(Button)
+        clearBtn.node.on(Button.EventType.CLICK, ()=>{
+            this.stackLabel.string = ""
+            this.debuggerContentNode.destroyAllChildren()
+        }, this)
+        bgNode.addChild(clearNode)
+
+        let closeNode : Node = new Node("CloseBtn")
+        closeNode.layer = 1 << Layers.nameToLayer("UI_2D")
+        let closeSprite: Sprite = closeNode.addComponent(Sprite)
+        closeSprite.spriteFrame = spriteframe
+        closeSprite.color = Color.RED
+        closeSprite.type = Sprite.Type.SLICED
+        this.addFillHeightParentWidget(closeNode)
+        let closeBtn : Button = closeNode.addComponent(Button)
+        closeBtn.node.on(Button.EventType.CLICK, ()=>{
+            this.disableLog()
+        }, this)
+        bgNode.addChild(closeNode)
     }
 
     initStackView(spriteframe: SpriteFrame, rect: Rect) {
