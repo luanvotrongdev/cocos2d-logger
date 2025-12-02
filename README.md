@@ -1,45 +1,71 @@
-**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
+~~~{"id":"55901","variant":"standard","title":"README for cocos2d-logger"}
+# cocos2d-logger
 
-When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
+A lightweight, zero-friction on-screen logger for Cocos Creator. Designed to accelerate in-engine debugging without attaching devtools or printing to native consoles. Ideal for rapid iteration, mobile debugging, and field-test builds where console access is constrained.
 
-*We recommend that you open this README in another tab as you perform the tasks below. You can [watch our video](https://youtu.be/0ocf7u76WSo) for a full demo of all the steps in this tutorial. Open the video in a new tab to avoid leaving Bitbucket.*
+## Key Value Props
+- **Real-time log surface** directly in the game view  
+- **Non-blocking overlay** with configurable anchor, opacity, and font size  
+- **Drop-in integration**—minimal footprint, no external dependencies  
+- **Production-safe**—easy runtime toggle and optional filtering  
+- **Mobile-friendly UX**—touch scroll, pinch to zoom (optional)
 
----
+## Installation
+1. Add the package folder into your project’s `assets/` directory.  
+2. Ensure TypeScript is enabled if using `.ts` components.  
+3. Reload the Cocos Creator editor.
 
-## Edit a file
+## Usage
 
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
+### Initialization
+```ts
+import { Logger } from './scripts/Logger';
 
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text: *Delete this line to make a change to the README from Bitbucket.*
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
+const logger = new Logger({
+  maxLines: 200,
+  fontSize: 14,
+  anchor: 'bottom-left',
+});
+```
 
----
+### Logging
+```ts
+logger.info('Game started');
+logger.warn('Low FPS detected');
+logger.error('Player position invalid', player.position);
+```
 
-## Create a file
+### Toggle Visibility
+```ts
+logger.setVisible(true);  // show
+logger.setVisible(false); // hide
+```
 
-Next, you’ll add a new file to this repository.
+### Clear Logs
+```ts
+logger.clear();
+```
 
-1. Click the **New file** button at the top of the **Source** page.
-2. Give the file a filename of **contributors.txt**.
-3. Enter your name in the empty file space.
-4. Click **Commit** and then **Commit** again in the dialog.
-5. Go back to the **Source** page.
+## Configuration Options
+| Option      | Type      | Default        | Description |
+|-------------|-----------|----------------|-------------|
+| `maxLines`  | number    | 100            | Max log buffer size |
+| `fontSize`  | number    | 12             | Text size |
+| `anchor`    | string    | 'top-left'     | UI anchor: top-left, top-right, bottom-left, bottom-right |
+| `opacity`   | number    | 0.8            | Background opacity |
+| `timestamp` | boolean   | true           | Prepend timestamps |
 
-Before you move on, go ahead and explore the repository. You've already seen the **Source** page, but check out the **Commits**, **Branches**, and **Settings** pages.
+## Best Practices
+- Disable or minimize logs in production to avoid perf overhead.  
+- Use `logger.warn` and `logger.error` strategically for telemetry-style insights during QA.  
+- Keep `maxLines` lean on low-end mobile devices.
 
----
+## Roadmap
+- Log filtering (INFO/WARN/ERROR)  
+- Remote streaming via WebSocket  
+- UI skinning presets  
+- Auto-collapse when idle
 
-## Clone a repository
-
-Use these steps to clone from SourceTree, our client for using the repository command-line free. Cloning allows you to work on your files locally. If you don't yet have SourceTree, [download and install first](https://www.sourcetreeapp.com/). If you prefer to clone from the command line, see [Clone a repository](https://confluence.atlassian.com/x/4whODQ).
-
-1. You’ll see the clone button under the **Source** heading. Click that button.
-2. Now click **Check out in SourceTree**. You may need to create a SourceTree account or log in.
-3. When you see the **Clone New** dialog in SourceTree, update the destination path and name if you’d like to and then click **Clone**.
-4. Open the directory you just created to see your repository’s files.
-
-Now that you're more familiar with your Bitbucket repository, go ahead and add a new file locally. You can [push your change back to Bitbucket with SourceTree](https://confluence.atlassian.com/x/iqyBMg), or you can [add, commit,](https://confluence.atlassian.com/x/8QhODQ) and [push from the command line](https://confluence.atlassian.com/x/NQ0zDQ).
+## License
+MIT License.
+~~~
