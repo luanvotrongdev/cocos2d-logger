@@ -1,4 +1,3 @@
-~~~{"id":"55901","variant":"standard","title":"README for cocos2d-logger"}
 # cocos2d-logger
 
 A lightweight, zero-friction on-screen logger for Cocos Creator. Designed to accelerate in-engine debugging without attaching devtools or printing to native consoles. Ideal for rapid iteration, mobile debugging, and field-test builds where console access is constrained.
@@ -68,4 +67,3 @@ logger.clear();
 
 ## License
 MIT License.
-~~~
